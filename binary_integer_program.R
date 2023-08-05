@@ -16,10 +16,8 @@ DSTs <- 1
 Ks <- 0
 tm_size <- RBs+WRs+TEs+QBs+Flexs+SFlexs+DSTs+Ks
 
-
 data <- read.csv('./data/proj_cost_data_full(yahoo).csv',stringsAsFactors = FALSE)
 nplayers <- length(data$Players)
-
 
 to_spend <- budget-amount_for_bench
 model <- MIPModel() %>%
@@ -35,7 +33,6 @@ model <- MIPModel() %>%
   add_constraint(sum_expr(x[i] * data$DST[i], i = 1:nplayers)<=DSTs) %>%
   add_constraint(sum_expr(x[i] * data$Cost[i], i = 1:nplayers)<=to_spend) %>%
   solve_model(with_ROI(solver="glpk", verbose = TRUE))
-
 
 vec <- get_solution(model,x[i])
 team <- data$Players[vec$value==1]
