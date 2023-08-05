@@ -4,21 +4,20 @@ library('ROI.plugin.glpk')
 library('ompr.roi')
 library('ggplot2')
 
-budget <- 200
-amount_for_bench <- 50
-RBs <- 2
-WRs <- 2
-TEs <- 1
+budget <- 190
+amount_for_bench <- 0
 QBs <- 1
-Flexs <- 1
+RBs <- 4
+WRs <- 6
+TEs <- 2
+Flexs <- 0
 SFlexs <- 0
 DSTs <- 1
-Ks <- 1
+Ks <- 0
 tm_size <- RBs+WRs+TEs+QBs+Flexs+SFlexs+DSTs+Ks
 
 
-dsetwd(getSrcDirectory()[1])
-data <- read.csv('./data/proj_cost_data_half.csv',stringsAsFactors = FALSE)
+data <- read.csv('./data/proj_cost_data_full(yahoo).csv',stringsAsFactors = FALSE)
 nplayers <- length(data$Players)
 
 
@@ -26,10 +25,10 @@ to_spend <- budget-amount_for_bench
 model <- MIPModel() %>%
   add_variable(x[i],i=1:nplayers,type='binary') %>%
   set_objective(sum_expr(x[i] * data$Proj[i], i = 1:nplayers)) %>%
+  add_constraint(sum_expr(x[i] * data$QB[i], i = 1:nplayers)>=QBs) %>%
   add_constraint(sum_expr(x[i] * data$RB[i], i = 1:nplayers)>=RBs) %>%
   add_constraint(sum_expr(x[i] * data$WR[i], i = 1:nplayers)>=WRs) %>%
   add_constraint(sum_expr(x[i] * data$TE[i], i = 1:nplayers)>=TEs) %>%
-  add_constraint(sum_expr(x[i] * data$QB[i], i = 1:nplayers)>=QBs) %>%
   add_constraint(sum_expr(x[i] * data$QB[i], i = 1:nplayers)<=(QBs+SFlexs)) %>%
   add_constraint(sum_expr(x[i] * data$Flex[i], i = 1:nplayers)<=(SFlexs+Flexs+RBs+WRs+TEs)) %>%
   add_constraint(sum_expr(x[i] * data$K[i], i = 1:nplayers)<=Ks) %>%
@@ -51,6 +50,5 @@ for(i in 1:tm_size){
 }
 
 summary_df <- data.frame('Player'=team,'Cost'=tm_cost,'Proj'=tm_proj)
-print(paste('Team Cost: ',as.character(sum(summary_df$Cost)),sep=''))
-print(paste('Team Proj: ',as.character(sum(summary_df$Proj)),sep=''))
-
+print(paste0('Team Cost: ', as.character(sum(summary_df$Cost))))
+print(paste0('Team Proj: ',as.character(sum(summary_df$Proj)),sep=''))
